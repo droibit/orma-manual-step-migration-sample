@@ -1,11 +1,10 @@
 package com.github.droibit.ormpmigration.sample
 
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import com.github.gfx.android.orma.migration.ManualStepMigration.ChangeStep
 import com.github.gfx.android.orma.migration.ManualStepMigration.Helper
-import com.github.gfx.android.orma.migration.OrmaMigration
 import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
@@ -16,14 +15,19 @@ class MainActivity : AppCompatActivity() {
 
     val orma = OrmaDatabase.builder(this)
         .name("book.db")
-        .migrationEngine(
-            OrmaMigration.builder(this)
-                .schemaHashForSchemaDiffMigration(OrmaDatabase.SCHEMA_HASH)
-                .step(1, object : ChangeStep() {
-                  override fun change(helper: Helper) = Unit
-                })
-                .build()
-        ).build()
+        .migrationStep(1, object : ChangeStep() {
+          override fun change(helper: Helper) {
+            Log.d(BuildConfig.BUILD_TYPE, "Steps to execute migration at version up. It is not executed.")
+          }
+        })
+        .migrationStep(3, object : ChangeStep() {
+          override fun change(helper: Helper) {
+            Log.d(BuildConfig.BUILD_TYPE, "Migration, version 3")
+            // Dummy query to update db version.
+            helper.execSQL("DROP TABLE IF EXISTS hoge")
+          }
+        })
+        .build()
     thread {
       orma.migrate()
 //      orma.insertIntoBook(Book(id = 0, title = "test1"))
